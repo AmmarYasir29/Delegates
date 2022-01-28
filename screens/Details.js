@@ -3,23 +3,23 @@ import {
   StyleSheet,
   Text,
   View,
-  TextInput,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
 import { Input, Button, ButtonGroup } from "react-native-elements";
 
-export default function Details() {
+export default function Details({ route }) {
   const [name, setName] = useState("");
   const [Balance, setBalance] = useState(0);
   const [date, setDate] = useState(null);
   const [type, setType] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const { user } = route.params;
 
   const submitInfo = () => {
     console.log(selectedIndex);
   };
-
+  console.log(user);
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}

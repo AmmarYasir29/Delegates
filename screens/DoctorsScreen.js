@@ -1,16 +1,27 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import { SearchBar, Text } from "react-native-elements";
+import { collectionGroup, query, where, getDocs } from "firebase/firestore";
+import db from "../db/firestore";
 
-const DoctorsScreen = ({ navigation }) => {
+const DoctorsScreen = ({ navigation, route }) => {
   const [search, setSearch] = useState("");
-  const [data, setData] = useState([
-    {
-      name: "brynn",
-      avatar: "https://uifaces.co/our-content/donated/1H_7AxP0.jpg",
-      money: 432,
-    },
-  ]);
+  const [data, setData] = useState([]);
+  const { id } = route.params;
+
+  let dataa = [];
+  //TODO: calulate the money of doctor
+  useEffect(async () => {
+    const q = query(
+      collectionGroup(db, "doctors"),
+      where("delegate_id", "==", id)
+    );
+    const querySnapshot = await getDocs(q);
+    querySnapshot.forEach(doc => {
+      dataa.push({ id: doc.id, name: doc.data().name, avatar: "", money: 123 });
+    });
+    setData(dataa);
+  }, []);
 
   //FIXME: not work
   const updateSearch = searchedText => {
@@ -20,9 +31,6 @@ const DoctorsScreen = ({ navigation }) => {
   return (
     <ScrollView>
       <View style={styles.container}>
-        {/* <View style={styles.headerTitle}>
-          <Text style={styles.title}>Doctors Names</Text>
-        </View> */}
         <View style={styles.searchStyle}>
           <SearchBar
             placeholder="Type Here..."
@@ -35,7 +43,7 @@ const DoctorsScreen = ({ navigation }) => {
         {data.map((user, i) => (
           <TouchableOpacity
             key={i}
-            onPress={() => navigation.navigate("Details")}
+            onPress={() => navigation.navigate("Details", { user })}
           >
             <View style={styles.user}>
               <Text style={styles.textInfo}>{user.name}</Text>

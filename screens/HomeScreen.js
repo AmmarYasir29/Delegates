@@ -1,57 +1,23 @@
 import React, { useState, useEffect } from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  View,
-  Image,
-  TouchableOpacity,
-} from "react-native";
-import { Text, Card, Button, Icon } from "react-native-elements";
-import { SearchBar } from "react-native-elements";
-
-const users = [
-  {
-    name: "brynn",
-    avatar: "https://uifaces.co/our-content/donated/1H_7AxP0.jpg",
-    money: 432,
-  },
-  {
-    name: "thot leader",
-    avatar:
-      "https://images.pexels.com/photos/598745/pexels-photo-598745.jpeg?crop=faces&fit=crop&h=200&w=200&auto=compress&cs=tinysrgb",
-    money: 645,
-  },
-  {
-    name: "jsa",
-    avatar: "https://uifaces.co/our-content/donated/bUkmHPKs.jpg",
-    money: 346,
-  },
-  {
-    name: "talhaconcepts",
-    avatar: "https://randomuser.me/api/portraits/men/4.jpg",
-    money: 432,
-  },
-  {
-    name: "andy vitale",
-    avatar: "https://uifaces.co/our-content/donated/NY9hnAbp.jpg",
-    money: 432,
-  },
-  {
-    name: "katy friedson",
-    avatar:
-      "https://images-na.ssl-images-amazon.com/images/M/MV5BMTgxMTc1MTYzM15BMl5BanBnXkFtZTgwNzI5NjMwOTE@._V1_UY256_CR16,0,172,256_AL_.jpg",
-    money: 432,
-  },
-];
+import { ScrollView, StyleSheet, View, TouchableOpacity } from "react-native";
+import { Text, SearchBar } from "react-native-elements";
+import db from "../db/firestore";
+import { collection, getDocs } from "firebase/firestore";
 
 const HomeScreen = ({ navigation }) => {
   const [search, setSearch] = useState("");
   const [fullData, setFullData] = useState([]);
   const [data, setData] = useState([]);
 
-  useEffect(() => {
-    setFullData(users);
-    setData(users);
+  let dataa = [];
+  useEffect(async () => {
+    const querySnapshot = await getDocs(collection(db, "delegates"));
+    querySnapshot.forEach(doc => {
+      console.log(doc.id, " => data() from firebase! ", doc.data());
+      dataa.push({ id: doc.id, name: doc.data().name, avatar: "", money: 123 });
+    });
+    setFullData(dataa);
+    setData(dataa);
   }, []);
 
   const updateSearch = searchedText => {
@@ -70,10 +36,10 @@ const HomeScreen = ({ navigation }) => {
             lightTheme
           />
         </View>
-        {data.map((user, i) => (
+        {data.map(user => (
           <TouchableOpacity
-            key={i}
-            onPress={() => navigation.navigate("Doctors")}
+            key={user.id}
+            onPress={() => navigation.navigate("Doctors", { id: user.id })}
           >
             <View style={styles.user}>
               <Text style={styles.textInfo}>{user.name}</Text>
@@ -85,8 +51,6 @@ const HomeScreen = ({ navigation }) => {
     </ScrollView>
   );
 };
-
-export default HomeScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -122,3 +86,5 @@ const styles = StyleSheet.create({
     color: "black",
   },
 });
+
+export default HomeScreen;
