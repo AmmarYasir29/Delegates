@@ -1,35 +1,79 @@
-import React, { cloneElement, useState } from "react";
+import React, { cloneElement, useEffect, useState } from "react";
 import {
   StyleSheet,
   Text,
   View,
   KeyboardAvoidingView,
   Platform,
+  FlatList,
 } from "react-native";
 import { Input, Button, ButtonGroup } from "react-native-elements";
+import {
+  getDocs,
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+} from "firebase/firestore";
+import db from "../db/firestore";
+import { ListItem } from "react-native-elements";
 
 export default function Details({ route }) {
+  //TODO: calculate the amoutn for each doctor
+  //      show the last date
+  //      submite info
   const [name, setName] = useState("");
   const [Balance, setBalance] = useState(0);
-  const [date, setDate] = useState(null);
+  const [today, setToday] = useState(""); //null
   const [type, setType] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [payment, setPayment] = useState([]);
   const { user } = route.params;
+  let Today = new Date().toISOString().slice(0, 10);
+  let listOfPayment = [];
+
+  function compare(a, b) {
+    var dateA = new Date(a.data.toDate());
+    var dateB = new Date(b.data.toDate());
+    return dateA - dateB;
+  }
+
+  useEffect(async () => {
+    const querySnapshot = await getDocs(
+      collection(db, "doctors", user.id, "payment"),
+      orderBy("amount")
+    );
+
+    querySnapshot.forEach(doc => {
+      // onSnapshot(querySnapshot, doc => {
+      //   doc.docs.forEach(doc => {
+      console.log(doc.id, " => data() from firebase! ", doc.data());
+
+      listOfPayment.push({
+        ...doc.data(),
+        id: doc.id,
+      });
+    });
+    // });
+    listOfPayment.sort(compare);
+    setPayment(listOfPayment);
+    setName(user.name);
+    setToday(Today);
+  }, []);
 
   const submitInfo = () => {
     console.log(selectedIndex);
   };
-  console.log(user);
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View style={styles.Row}>
-        <Text style={styles.info}>Doctor Name</Text>
-        <Text style={styles.info}>Balance</Text>
+        <Text style={styles.info}>{user.name}</Text>
+        <Text style={styles.info}>{user.money}</Text>
       </View>
       <View style={styles.Row}>
-        <Text style={styles.info}>Location</Text>
+        <Text style={styles.info}>{user.location}</Text>
         <Text style={styles.info}>Last Date</Text>
       </View>
       <View>
@@ -40,8 +84,8 @@ export default function Details({ route }) {
         />
         <Input
           placeholder="Date"
-          value={date}
-          onChangeText={text => setDate(text)}
+          value={today}
+          onChangeText={text => setToday(text)}
         />
         <Input
           placeholder="Money"
@@ -66,7 +110,25 @@ export default function Details({ route }) {
             onPress={submitInfo}
           />
         </View>
-        {/* <FlatList>Rate your teams performance this quarter</FlatList> */}
+
+        {payment.map(l => (
+          <ListItem
+            // containerStyle={{
+            //   justifyContent: "center",
+            //   flexDirection: "row",
+            // }}
+            key={l.id}
+            bottomDivider
+          >
+            <ListItem.Content>
+              <ListItem.Subtitle>{l.amount}</ListItem.Subtitle>
+              <ListItem.Subtitle>{l.type}</ListItem.Subtitle>
+              <ListItem.Subtitle>
+                {l.data.toDate().toDateString()}
+              </ListItem.Subtitle>
+            </ListItem.Content>
+          </ListItem>
+        ))}
       </View>
     </KeyboardAvoidingView>
   );
@@ -90,5 +152,14 @@ const styles = StyleSheet.create({
   groupButton: {
     flexDirection: "row",
     justifyContent: "space-around",
+  },
+  container: {
+    flex: 1,
+    paddingTop: 22,
+  },
+  item: {
+    padding: 10,
+    fontSize: 18,
+    height: 44,
   },
 });

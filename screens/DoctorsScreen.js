@@ -18,7 +18,14 @@ const DoctorsScreen = ({ navigation, route }) => {
     );
     const querySnapshot = await getDocs(q);
     querySnapshot.forEach(doc => {
-      dataa.push({ id: doc.id, name: doc.data().name, avatar: "", money: 123 });
+      dataa.push({
+        id: doc.id,
+        name: doc.data().name,
+        lastDate: "",
+        money: 123,
+        location: doc.data().location,
+      });
+      console.log("doc: ", doc);
     });
     setData(dataa);
   }, []);
