@@ -1,40 +1,31 @@
-import React, { cloneElement, useEffect, useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  KeyboardAvoidingView,
-  Platform,
-  FlatList,
-} from "react-native";
-import { Input, Button, ButtonGroup } from "react-native-elements";
+import React, { useEffect, useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { ListItem, Input, Button, ButtonGroup } from "react-native-elements";
 import {
   getDocs,
   collection,
-  query,
   orderBy,
-  onSnapshot,
+  updateDoc,
+  doc,
+  addDoc,
+  Timestamp,
 } from "firebase/firestore";
 import db from "../db/firestore";
-import { ListItem } from "react-native-elements";
 
 export default function Details({ route }) {
-  //TODO: calculate the amoutn for each doctor
-  //      show the last date
-  //      submite info
   const [name, setName] = useState("");
-  const [Balance, setBalance] = useState(0);
-  const [today, setToday] = useState(""); //null
-  const [type, setType] = useState(null);
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [payment, setPayment] = useState([]);
+  const [balance, setBalance] = useState(0);
+  const [today, setToday] = useState(new Date().toISOString().slice(0, 10));
+  const [selectedIndex, setSelectedIndex] = useState(1);
+  let total = 0;
+  const [payment, setPayment] = useState([{ date: "" }]);
+  // user here is same doctor
   const { user } = route.params;
-  let Today = new Date().toISOString().slice(0, 10);
   let listOfPayment = [];
 
   function compare(a, b) {
-    var dateA = new Date(a.data.toDate());
-    var dateB = new Date(b.data.toDate());
+    var dateA = new Date(a.date.toDate());
+    var dateB = new Date(b.date.toDate());
     return dateA - dateB;
   }
 
@@ -47,7 +38,7 @@ export default function Details({ route }) {
     querySnapshot.forEach(doc => {
       // onSnapshot(querySnapshot, doc => {
       //   doc.docs.forEach(doc => {
-      console.log(doc.id, " => data() from firebase! ", doc.data());
+      // console.log(doc.id, " => data() from firebase! ", doc.data());
 
       listOfPayment.push({
         ...doc.data(),
@@ -58,23 +49,49 @@ export default function Details({ route }) {
     listOfPayment.sort(compare);
     setPayment(listOfPayment);
     setName(user.name);
-    setToday(Today);
   }, []);
 
-  const submitInfo = () => {
-    console.log(selectedIndex);
+  const finalAmount = () => {
+    payment.forEach(item => {
+      if (item.type === "+") total = total + parseInt(item.amount);
+      else if (item.type === "-") total = total - parseInt(item.amount);
+    });
+  };
+  const saveData = async () => {
+    await updateDoc(doc(db, "doctors", user.id), {
+      money: total,
+    });
+  };
+  finalAmount();
+  saveData();
+
+  const submitInfo = async () => {
+    let type;
+    if (selectedIndex === 0) type = "-";
+    else if (selectedIndex === 1) type = "+";
+    const docRef = await addDoc(collection(db, "doctors", user.id, "payment"), {
+      amount: balance,
+      date: Timestamp.fromDate(new Date(today)),
+      type: type,
+    });
+    alert("تم حفظ البيانات ", docRef.id);
   };
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
+    // <KeyboardAvoidingView
+    //   behavior={Platform.OS === "ios" ? "padding" : "height"}
+    // >
+    <>
       <View style={styles.Row}>
         <Text style={styles.info}>{user.name}</Text>
         <Text style={styles.info}>{user.money}</Text>
       </View>
       <View style={styles.Row}>
         <Text style={styles.info}>{user.location}</Text>
-        <Text style={styles.info}>Last Date</Text>
+        <Text style={styles.info}>
+          {payment[payment.length - 1].date
+            ? payment[payment.length - 1].date.toDate().toDateString()
+            : "Date"}
+        </Text>
       </View>
       <View>
         <Input
@@ -89,7 +106,7 @@ export default function Details({ route }) {
         />
         <Input
           placeholder="Money"
-          value={Balance}
+          value={balance}
           onChangeText={text => setBalance(text)}
         />
         <View style={styles.groupButton}>
@@ -110,27 +127,27 @@ export default function Details({ route }) {
             onPress={submitInfo}
           />
         </View>
-
-        {payment.map(l => (
+        {payment.map((l, i) => (
           <ListItem
             // containerStyle={{
             //   justifyContent: "center",
             //   flexDirection: "row",
             // }}
-            key={l.id}
+            key={i}
             bottomDivider
           >
             <ListItem.Content>
               <ListItem.Subtitle>{l.amount}</ListItem.Subtitle>
               <ListItem.Subtitle>{l.type}</ListItem.Subtitle>
               <ListItem.Subtitle>
-                {l.data.toDate().toDateString()}
+                {l.date ? l.date.toDate().toDateString() : "Date"}
               </ListItem.Subtitle>
             </ListItem.Content>
           </ListItem>
         ))}
       </View>
-    </KeyboardAvoidingView>
+    </>
+    // </KeyboardAvoidingView>
   );
 }
 

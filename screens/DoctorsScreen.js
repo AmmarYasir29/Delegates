@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { View, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import { SearchBar, Text } from "react-native-elements";
-import { collectionGroup, query, where, getDocs } from "firebase/firestore";
+import {
+  collectionGroup,
+  query,
+  where,
+  getDocs,
+  updateDoc,
+  doc,
+} from "firebase/firestore";
 import db from "../db/firestore";
 
 const DoctorsScreen = ({ navigation, route }) => {
@@ -9,8 +16,8 @@ const DoctorsScreen = ({ navigation, route }) => {
   const [data, setData] = useState([]);
   const { id } = route.params;
 
+  let total = 0;
   let dataa = [];
-  //TODO: calulate the money of doctor
   useEffect(async () => {
     const q = query(
       collectionGroup(db, "doctors"),
@@ -22,14 +29,25 @@ const DoctorsScreen = ({ navigation, route }) => {
         id: doc.id,
         name: doc.data().name,
         lastDate: "",
-        money: 123,
+        money: doc.data().money,
         location: doc.data().location,
       });
-      console.log("doc: ", doc);
     });
     setData(dataa);
   }, []);
+  const finalAmount = () => {
+    data.forEach(item => {
+      total = total + parseInt(item.money);
+    });
+  };
 
+  const saveData = async () => {
+    await updateDoc(doc(db, "delegates", id), {
+      money: total,
+    });
+  };
+  finalAmount();
+  saveData();
   //FIXME: not work
   const updateSearch = searchedText => {
     setSearch(searchedText);

@@ -13,8 +13,13 @@ const HomeScreen = ({ navigation }) => {
   useEffect(async () => {
     const querySnapshot = await getDocs(collection(db, "delegates"));
     querySnapshot.forEach(doc => {
-      console.log(doc.id, " => data() from firebase! ", doc.data());
-      dataa.push({ id: doc.id, name: doc.data().name, avatar: "", money: 123 });
+      // console.log(doc.id, " => data() from firebase! ", doc.data());
+      dataa.push({
+        id: doc.id,
+        name: doc.data().name,
+        avatar: "",
+        money: doc.data().money,
+      });
     });
     setFullData(dataa);
     setData(dataa);
