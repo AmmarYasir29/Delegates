@@ -76,6 +76,7 @@ export default function Details({ route }) {
     });
     alert("تم حفظ البيانات ", docRef.id);
   };
+  // if (!user && !listOfPayment) return <Text>there is no data!</Text>;
   return (
     // <KeyboardAvoidingView
     //   behavior={Platform.OS === "ios" ? "padding" : "height"}

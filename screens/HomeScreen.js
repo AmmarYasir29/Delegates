@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ScrollView, StyleSheet, View, TouchableOpacity } from "react-native";
-import { Text, SearchBar } from "react-native-elements";
+import { Text, SearchBar, Button } from "react-native-elements";
 import db from "../db/firestore";
 import { collection, getDocs } from "firebase/firestore";
 
@@ -33,12 +33,45 @@ const HomeScreen = ({ navigation }) => {
     <ScrollView>
       <View style={styles.container}>
         <View style={styles.searchStyle}>
-          <SearchBar
+          {/* <SearchBar
             placeholder="Type Here..."
             onChangeText={updateSearch}
             value={search}
             round
             lightTheme
+          /> */}
+
+          <Button
+            title="Add Delegate"
+            containerStyle={{
+              height: 40,
+              width: 200,
+              marginHorizontal: 50,
+              marginVertical: 10,
+              flexDirection: "column",
+            }}
+            buttonStyle={{ backgroundColor: "rgba(255, 193, 7, 1)" }}
+            titleStyle={{
+              color: "white",
+              marginHorizontal: 20,
+            }}
+            onPress={() => navigation.navigate("AddDelegate")}
+          />
+          <Button
+            title="Add Doctor"
+            containerStyle={{
+              height: 40,
+              width: 200,
+              marginHorizontal: 50,
+              marginVertical: 10,
+              flexDirection: "column",
+            }}
+            buttonStyle={{ backgroundColor: "rgba(255, 193, 7, 1)" }}
+            titleStyle={{
+              color: "white",
+              marginHorizontal: 20,
+            }}
+            onPress={() => navigation.navigate("AddDoctor")}
           />
         </View>
         {data.map(user => (
@@ -49,6 +82,7 @@ const HomeScreen = ({ navigation }) => {
             <View style={styles.user}>
               <Text style={styles.textInfo}>{user.name}</Text>
               <Text style={styles.textInfo}> {user.money}</Text>
+              <Text style={styles.textInfo}>{user.id}</Text>
             </View>
           </TouchableOpacity>
         ))}
@@ -75,6 +109,7 @@ const styles = StyleSheet.create({
   },
   searchStyle: {
     marginVertical: 5,
+    flexDirection: "column",
   },
   user: {
     flexDirection: "row",
